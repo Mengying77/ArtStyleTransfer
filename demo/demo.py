@@ -10,14 +10,22 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
 styles = {
-    'van Gogh': 'Gogh',
-    'Monet': 'Monet'
+    "Aoyama - Detective Conan": "Aoyama - Detective Conan",
+    "Gao Jianfu - Cotton Roses and Mandarin Ducks": "Gao Jianfu - Cotton Roses and Mandarin Ducks",
+    "Hokusai - The Great Wave off Kanagawa": "Hokusai - The Great Wave off Kanagawa",
+    "Hokusai + Qi Baishi (Multi-Style)": "Hokusai + Qi Baishi",
+    "Monet - Camille Monet On Her Deathbed": "Monet - Camille Monet On Her Deathbed",
+    "Monet - Haystack": "Monet - Haystack",
+    "Picasso - The Dream": "Picasso - The Dream",
+    "Qi Baishi - Lotus Flowers and Wild Duck": "Qi Baishi - Lotus Flowers and Wild Duck",
+    "Rousseau - Myself": "Rousseau - Myself",
+    "van Gogh - Starry Night": "van Gogh - Starry Night"
 }
 
 
 app.layout = html.Div([
-    html.H1('ArtNet', style={'textAlign': 'center'}),
-
+    html.H1('ArtNet: Artistic Style Transfer Network', style={'textAlign': 'center'}),
+    html.H3('Mengying Bi (mybi), Cathy Jia (cathyjia), Geoffrey Li (geoffli)', style={'textAlign': 'center'}),
     html.Hr(),
 
     # drag or upload input image
@@ -46,15 +54,42 @@ app.layout = html.Div([
     html.Div(
         children=[
             html.Label([
-                "Choose a style",
+                "Choose a Style",
                 dcc.Dropdown(
                     id='choose-style',
                     options=[
                         {'label': label, 'value': value} for (label, value) in styles.items()
                     ],
-                    value='Gogh',  # initial value
-                )]
-            )
+                    value="Hokusai - The Great Wave off Kanagawa",  # initial value
+                )
+            ]),
+            html.Label([
+                "Preserve Color",
+                dcc.RadioItems(
+                    id='preserve-color',
+                    options=[
+                        {'label': 'Yes', 'value': 'True'},
+                        {'label': 'No', 'value': 'False'},
+                    ],
+                    labelStyle={'display': 'inline-block', 'text-align': 'justify'},
+                    value='False'
+                )
+            ]),
+            html.Label([
+                "Multi-Style Ratio",
+                dcc.Slider(
+                    id='multi-style-ratio',
+                    min=1090,
+                    max=9010,
+                    step=None,
+                    marks={
+                        1090: '10:90',
+                        5050: '50:50',
+                        9010: '90:10'
+                    },
+                    value=5050
+                )
+            ])
         ],
         style={'width': '48%', 'display': 'inline-block', 'marginLeft': '30px', 'verticalAlign': 'top'}
     ),
@@ -89,16 +124,15 @@ def display_input(contents, filename):
 
 
 @app.callback(Output('display-output-image', 'children'),
-              [Input('input-image', 'filename')],
-              [State('choose-style', 'value')])
-def display_output(input_image_name, style):
+              [Input('input-image', 'filename'),
+               Input('choose-style', 'value'),
+               Input('preserve-color', 'value'),
+               Input('multi-style-ratio', 'value')])
+def display_output(input_image_name, style, color, ratio):
     if input_image_name is not None:
-        output_image = style_transfer.transfer(input_image_name, style)
-        for key, value in styles.items():
-            if value == style:
-                style_name = key
+        output_image = style_transfer.transfer(input_image_name, style, color, ratio)
         children = [
-            html.H5('Output Image (' + style_name + ')'),
+            html.H5('Output Image (' + style + ')'),
             html.Img(
                 src='data:image/png;base64,{}'.format(output_image.decode()),
                 style={'width': '100%'}
@@ -108,4 +142,4 @@ def display_output(input_image_name, style):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
